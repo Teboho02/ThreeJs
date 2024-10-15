@@ -1,0 +1,11 @@
+Model Information:
+* title:	Жилой дом_
+* source:	https://sketchfab.com/3d-models/0968a918caab4d81920ffd1f8b99eb4e
+* author:	labarch (https://sketchfab.com/labarch)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Жилой дом_" (https://sketchfab.com/3d-models/0968a918caab4d81920ffd1f8b99eb4e) by labarch (https://sketchfab.com/labarch) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
