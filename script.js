@@ -1,7 +1,6 @@
 const scene = new THREE.Scene();
 let camera_location_x = 0;
 let ghostModel, houseModel;
-const generateGhosts = require('./ghost');
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 0, 100);
 
@@ -43,10 +42,7 @@ const wallMaterial = new THREE.MeshStandardMaterial({
 const wallMesh = new THREE.Mesh(wallGeometry, wallMaterial);
 wallMesh.rotation.y = Math.PI; // Adjust the rotation if needed
 wallMesh.position.set(0, 50, -150); // Position the wall appropriately
-const wallMesh2 = wallMesh;
-wallMesh2.position.set(-50, 0, 0);
 scene.add(wallMesh);
-scene.add(wallMesh2);
 
 const loader = new THREE.GLTFLoader();
 
@@ -108,8 +104,6 @@ animate();
 
 
 
-generateGhosts([2, 0, 0])
-generateGhosts([8, 0, 10])
-generateGhosts([82, 0, 71])
 
 
+generateGhosts([2,0,0])
