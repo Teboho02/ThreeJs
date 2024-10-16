@@ -6,6 +6,12 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 camera.position.set(0, 50, 40);
 
 
+
+const rows = 300;
+const cols = 300;
+
+const array = Array.from({ length: rows }, () => Array(cols).fill(0));
+
 const xMovements = [1, 1, 1, -1, -1, 2, 2]
 
 const renderer = new THREE.WebGLRenderer();
@@ -27,6 +33,15 @@ const groundTexture = textureLoader.load('tex.jpg');
 groundTexture.wrapS = THREE.RepeatWrapping;
 groundTexture.wrapT = THREE.RepeatWrapping;
 groundTexture.repeat.set(2, 2);
+
+
+const goalgeometry = new THREE.CylinderGeometry(5, 5, 20, 32);
+const goalmaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+const goal = new THREE.Mesh(goalgeometry, goalmaterial);
+goal.position.set(100, 5, 100);
+scene.add(goal);
+
+
 
 const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture });
 const ground = new THREE.Mesh(groundGeometry, groundMaterial);
@@ -82,12 +97,29 @@ window.addEventListener('resize', function () {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
-
+let currindex = 0
 // Animation loop
 function animate() {
     requestAnimationFrame(animate);
 
     if (ghostModel) {
+
+        let path = bfs(array, {
+            x : goal.position.x,
+            z : goal.position.z,
+        },{
+            x : ghostModel.position.x,
+            z : ghostModel.position.z,
+        }
+    )
+    // console.log(path[currindex].x)
+
+    // ghostModel.position.x = path[currindex].x;
+    // ghostModel.position.z = path[currindex].z;
+
+
+   currindex += 1
+
 
     }
 
@@ -199,17 +231,6 @@ generateGhosts([-120, 10, 55], Math.PI);
 generateGhosts([-10, 10, 12]), Math.PI / 3;
 generateGhosts([12, 10, 22], Math.PI / 10);
 
-const rows = 300;
-const cols = 300;
 
-const array = Array.from({ length: rows }, () => Array(cols).fill(0));
-array[100][100] = 1;
-
-bfs(array, {x : 20, z: 50}, {x:0, z : 0})
-
-const goalgeometry = new THREE.CylinderGeometry(5, 5, 20, 32);
-const goalmaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-const goal = new THREE.Mesh(goalgeometry, goalmaterial);
-goal.position.set(100, 5, 100);
-scene.add(goal);
+bfs(array, {x : 15, z: 5}, {x:0, z : 0})
 

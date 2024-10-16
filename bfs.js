@@ -8,17 +8,32 @@ function checkVisited(visited, node) {
     return false;
 }
 
+// Heuristic function (Manhattan distance)
+function heuristic(node, goal) {
+    return Math.abs(node.x - goal.x) + Math.abs(node.z - goal.z);
+}
+
 export function bfs(matrix, goal, start) {
-    let queue = [];
-    queue.push(start);
-    let curr = start;
-    let goalFound = false;
-    let neighbours;
+    let openSet = [];
+    let gScore = {};
+    let fScore = {};
     let parent = {};
     let visited = [];
 
-    while (!goalFound && queue.length > 0) {
-        curr = queue.shift(); // Remove from the front of the queue
+    // Initialize the start node
+    openSet.push(start);
+    gScore[`${start.x},${start.z}`] = 0;
+    fScore[`${start.x},${start.z}`] = heuristic(start, goal);
+
+    let curr;
+    let goalFound = false;
+
+    while (openSet.length > 0) {
+        // Sort openSet based on fScore (priority queue)
+        openSet.sort((a, b) => fScore[`${a.x},${a.z}`] - fScore[`${b.x},${b.z}`]);
+
+        // Get the node with the lowest fScore
+        curr = openSet.shift();
 
         if (curr.x === goal.x && curr.z === goal.z) {
             goalFound = true;
@@ -26,13 +41,26 @@ export function bfs(matrix, goal, start) {
         }
 
         visited.push(curr);
-        neighbours = FindNeighbours(curr);
+        let neighbours = FindNeighbours(curr);
 
         for (let i = 0; i < neighbours.length; i++) {
             let neighbour = neighbours[i];
-            if (!checkVisited(visited, neighbour) && !checkVisited(queue, neighbour)) {
-                queue.push(neighbour);
+            if (checkVisited(visited, neighbour)) {
+                continue;
+            }
+
+            // Tentative gScore
+            let tentative_gScore = gScore[`${curr.x},${curr.z}`] + 1;
+
+            // If the neighbour hasn't been explored or we found a shorter path
+            if (!gScore[`${neighbour.x},${neighbour.z}`] || tentative_gScore < gScore[`${neighbour.x},${neighbour.z}`]) {
                 parent[`${neighbour.x},${neighbour.z}`] = curr; // Store parent for backtracking
+                gScore[`${neighbour.x},${neighbour.z}`] = tentative_gScore;
+                fScore[`${neighbour.x},${neighbour.z}`] = tentative_gScore + heuristic(neighbour, goal);
+
+                if (!checkVisited(openSet, neighbour)) {
+                    openSet.push(neighbour);
+                }
                 matrix[neighbour.x][neighbour.z] = 5; // Mark as visited in the matrix
             }
         }
@@ -50,13 +78,10 @@ export function bfs(matrix, goal, start) {
 
         // Reverse the path to start from the beginning
         path.reverse();
-        console.log("Path from start to goal:", path);
+        return path;
     } else {
         console.log("Goal not found.");
     }
-
-    console.log("Start:", start);
-    console.log(matrix);
 }
 
 function FindNeighbours(coord) {
@@ -67,25 +92,25 @@ function FindNeighbours(coord) {
     if (x > 0) {
         neighbours.push({ x: x - 1, z: z });
     }
-    if (x < 8) {
+    if (x < 300) {
         neighbours.push({ x: x + 1, z: z });
     }
     if (z > 0) {
         neighbours.push({ x: x, z: z - 1 });
     }
-    if (z < 8) {
+    if (z < 300) {
         neighbours.push({ x: x, z: z + 1 });
     }
     if (x > 0 && z > 0) {
         neighbours.push({ x: x - 1, z: z - 1 });
     }
-    if (x < 8 && z > 0) {
+    if (x < 300 && z > 0) {
         neighbours.push({ x: x + 1, z: z - 1 });
     }
-    if (x > 0 && z < 8) {
+    if (x > 0 && z < 300) {
         neighbours.push({ x: x - 1, z: z + 1 });
     }
-    if (x < 8 && z < 8) {
+    if (x < 300 && z < 300) {
         neighbours.push({ x: x + 1, z: z + 1 });
     }
 
