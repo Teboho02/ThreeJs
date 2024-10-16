@@ -15,4 +15,4 @@ function generateGhosts(position) {
 }
 
 
-module.exports = generateGhosts;
+module.exports = {generateGhosts};
