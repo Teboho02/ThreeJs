@@ -10,8 +10,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-directionalLight.position.set(1, 1, 1);
+directionalLight.position.set(100, 100, 100);
 directionalLight.castShadow = true;
+directionalLight.castShadow = true
 scene.add(directionalLight);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -30,17 +31,27 @@ ground.rotation.x = -Math.PI / 2;
 ground.position.y = -1;
 scene.add(ground);
 
-// Wall Creation
+const rootGeometry = new THREE.PlaneGeometry(300, 300);
+const roofMaterial = new THREE.MeshStandardMaterial({color : 0x00ff00})
 
+const roof = new THREE.Mesh(rootGeometry, roofMaterial);
+roof.rotation.x = -Math.PI / 2;
+roof.position.y = 100
+scene.add(roof)
+
+const housLight = new THREE.DirectionalLight(0xffffff, 0.5);
+housLight.position.set(1,1,1);
+housLight.target = roof;
+scene.add(housLight)
 
 const loader = new THREE.GLTFLoader();
 
 const CardinalDirections = {
-    North: 1,
-    East: 2,
-    South: 3,
-    West: 4
-}
+    North : 1,
+    East : 2,
+    South : 3,
+    West : 4
+  }
 
 
 
@@ -75,7 +86,7 @@ function animate() {
         //   ghostModel.position.z += 0.01;
     }
 
-
+    
     controls.update(); // Update controls
     renderer.render(scene, camera);
 }
@@ -91,25 +102,33 @@ document.addEventListener('keydown', function (event) {
     switch (event.key) {
         case 'ArrowUp':
             console.log('Up arrow was pressed');
-
+       
             break;
         case 'ArrowDown':
             console.log('Down arrow was pressed');
-            ghostModel.position.z -= 0.5;
+            if (ghostModel) {
+                ghostModel.rotateY(Math.PI / 2)
+            }
             break;
         case 'ArrowLeft':
             console.log('Left arrow was pressed');
+            if (ghostModel) {
+                ghostModel.rotateY(Math.PI / 2)
+            }
             break;
         case 'ArrowRight':
             console.log('Right arrow was pressed');
+            if (ghostModel) {
+                ghostModel.rotateY(-Math.PI / 2)
+            }
             break;
         case 'W':
             console.log('Move forward');
             break;
         case 'A':
             console.log('');
-            if (ghostModel) {
-                ghostModel.rotateY(Math.PI / 2)
+            if(ghostModel){
+                ghostModel.rotateY(Math.PI/2)
             }
             break;
         case 'S':
@@ -146,7 +165,7 @@ function getCamaraPosition() {
 
 }
 
-function createWall(xpos, zPos) {
+function createWall(xpos,zPos) {
     const wallGeometry = new THREE.PlaneGeometry(100, 100);
     const wallTexture = textureLoader.load('wall.jpg');
     wallTexture.wrapS = THREE.RepeatWrapping;
@@ -162,12 +181,12 @@ function createWall(xpos, zPos) {
     wallMesh.position.set(xpos, 50, zPos); // Position the wall appropriately
     scene.add(wallMesh);
 }
-createWall(100, 150);
-createWall(0, 150);
-createWall(-100, 150);
-createWall(100, -150);
-createWall(0, -150);
-createWall(-100, -   150);
+createWall(100,150);
+createWall(0,150);
+createWall(-100,150);
+createWall(100,-150);
+createWall(0,-150);
+createWall(-100,-   150);
 
 generateGhosts([2, 10, -114], Math.PI / 6);
 generateGhosts([110, 10, 131], 0.2);
@@ -181,11 +200,11 @@ const cols = 300;
 const array = Array.from({ length: rows }, () => Array(cols).fill(0));
 array[100][100] = 1;
 
-const goalgeometry = new THREE.CylinderGeometry(5, 5, 20, 32);
-const goalmaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-const goal = new THREE.Mesh(goalgeometry, goalmaterial);
+const goalgeometry = new THREE.CylinderGeometry( 5, 5, 20, 32 ); 
+const goalmaterial = new THREE.MeshStandardMaterial( {color: 0xff0000} ); 
+const goal = new THREE.Mesh( goalgeometry, goalmaterial );
 goal.position.set(100, 5, 100);
-scene.add(goal);
+scene.add( goal );
 
 // setInterval(()=>{
 //     if(ghostModel){
@@ -195,24 +214,24 @@ scene.add(goal);
 //             y : ghostModel.position.y,
 //             z : ghostModel.position.z
 //         }
-
+    
 //         console.log(start)
 //     }
-
+    
 // }, 100)
 
-setTimeout(() => {
-    if (ghostModel) {
+setTimeout(()=>{
+    if(ghostModel){
 
         const start = {
-            x: ghostModel.position.x,
-            y: ghostModel.position.y,
-            z: ghostModel.position.z
+            x : ghostModel.position.x,
+            y : ghostModel.position.y,
+            z : ghostModel.position.z
         }
-
+    
         console.log(start)
     }
-
+    
 }, 1000)
 
 
@@ -220,7 +239,7 @@ setTimeout(() => {
 function Astar(grid, start, goal) {
     let openList = [];
     let closedList = [];
-    let startNode = { position: { x: start.x, z: start.z }, g: 0, h: heuristic(start, goal), f: 0, parent: null };
+    let startNode = { position: {x: start.x, z: start.z}, g: 0, h: heuristic(start, goal), f: 0, parent: null };
     startNode.f = startNode.g + startNode.h;
 
     // Add startNode to the open list
@@ -232,7 +251,7 @@ function Astar(grid, start, goal) {
         let currentNode = openList.shift();  // Node with the lowest 'f' value
 
         // Check if we have reached the goal (2D comparison: x and z only)
-        if (currentNode.position.x === goal.position.x &&
+        if (currentNode.position.x === goal.position.x && 
             currentNode.position.z === goal.position.z) {
             return reconstructPath(currentNode);  // Goal found, reconstruct the path
         }
