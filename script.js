@@ -129,10 +129,17 @@ function generateGhosts(position, yRotation) {
         // Create AnimationMixer for the ghost model
         ghostMixer = new THREE.AnimationMixer(ghostModel);
 
-        // Play walk animation if available
+
+        //action 0 == attack
+        //action 1 == stand
+        //action 4 == hurt
+        //action 5 == run
+        //action 6 == sit
+    
+
         if (gltf.animations.length > 0) {
             console.log(gltf.animations)
-            const walkAction = ghostMixer.clipAction(gltf.animations[1]);
+            const walkAction = ghostMixer.clipAction(gltf.animations[5]);
             walkAction.play();
         }
 
@@ -165,47 +172,42 @@ function animate() {
 animate();
 
 document.addEventListener('keydown', function (event) {
+    if (!ghostModel || !ghostMixer) return; // If the ghost model or mixer is not loaded yet, do nothing
+
+    let runAction; // Declare a variable for the run action (action 5)
+
     switch (event.key) {
-        case 'ArrowUp':
-            console.log('Up arrow was pressed');
-            break;
-        case 'ArrowDown':
-            console.log('Down arrow was pressed');
-            if (ghostModel) {
-                ghostModel.rotateY(Math.PI / 2);
+        case 'ArrowUp': // Move forward and trigger run animation
+            const direction = new THREE.Vector3(); // Create a new vector to represent the direction
+            ghostModel.getWorldDirection(direction); // Get the current forward direction of the ghost
+            ghostModel.position.addScaledVector(direction, 1); // Move the ghost forward by 1 unit
+
+            // Play the running animation (action 5)
+            if (ghostMixer) {
+                runAction = ghostMixer.clipAction(ghostModel.animations[5]); // Assuming action 5 is the run animation
+                runAction.reset(); // Reset the animation so it starts from the beginning
+                runAction.play(); // Play the run animation
             }
             break;
-        case 'ArrowLeft':
-            console.log('Left arrow was pressed');
-            if (ghostModel) {
-                ghostModel.rotateY(Math.PI / 2);
-            }
+
+        case 'ArrowDown': // Rotate 180 degrees (turn around)
+            ghostModel.rotateY(Math.PI); // Rotate the ghost by 180 degrees (π radians)
             break;
-        case 'ArrowRight':
-            console.log('Right arrow was pressed');
-            if (ghostModel) {
-                ghostModel.rotateY(-Math.PI / 2);
-            }
+
+        case 'ArrowLeft': // Rotate left (90 degrees)
+            ghostModel.rotateY(Math.PI / 2); // Rotate the ghost by 90 degrees to the left
             break;
-        case 'W':
-            console.log('Move forward');
+
+        case 'ArrowRight': // Rotate right (90 degrees)
+            ghostModel.rotateY(-Math.PI / 2); // Rotate the ghost by 90 degrees to the right
             break;
-        case 'A':
-            if (ghostModel) {
-                ghostModel.rotateY(Math.PI / 2);
-            }
-            break;
-        case 'S':
-            console.log('S arrow was pressed');
-            break;
-        case 'D':
-            console.log('D arrow was pressed');
-            break;
+
         default:
             console.log('Other key pressed');
             break;
     }
 });
+
 
 function createWall(xpos, zPos) {
     const wallGeometry = new THREE.PlaneGeometry(100, 100);
@@ -231,4 +233,4 @@ createWall(0, -150);
 createWall(-100, -150);
 
 // Generate ghost models and trigger BFS
-generateGhosts([0, 0, 0], Math.PI / 3);
+generateGhosts([0, 0, 0], 0);
