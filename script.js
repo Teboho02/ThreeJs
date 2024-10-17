@@ -4,6 +4,7 @@ let ghostModel, houseModel, ghostModel2;
 let ghostMixer; 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 50, 40);
+let runAction;
 
 const rows = 300;
 const cols = 300;
@@ -153,11 +154,10 @@ function generateGhosts(position, yRotation) {
 function animate() {
     requestAnimationFrame(animate);
 
-    // Update the ghost's position along the BFS path
     frameCounter++;
     if (ghostModel && path.length > 0 && currindex < path.length && frameCounter % movementSpeed === 0) {
-     //   ghostModel.position.x = path[currindex].x;
-   //     ghostModel.position.z = path[currindex].z;
+        ghostModel.position.x = path[currindex].x;
+        ghostModel.position.z = path[currindex].z;
         currindex++;
     }
 
@@ -174,13 +174,12 @@ animate();
 document.addEventListener('keydown', function (event) {
     if (!ghostModel || !ghostMixer) return; // If the ghost model or mixer is not loaded yet, do nothing
 
-    let runAction; // Declare a variable for the run action (action 5)
 
     switch (event.key) {
         case 'ArrowUp': // Move forward and trigger run animation
             const direction = new THREE.Vector3(); // Create a new vector to represent the direction
             ghostModel.getWorldDirection(direction); // Get the current forward direction of the ghost
-            ghostModel.position.addScaledVector(direction, 1); // Move the ghost forward by 1 unit
+            ghostModel.position.addScaledVector(direction, 0.5); // Move the ghost forward by 1 unit
 
             // Play the running animation (action 5)
             if (ghostMixer) {
@@ -200,6 +199,11 @@ document.addEventListener('keydown', function (event) {
 
         case 'ArrowRight': // Rotate right (90 degrees)
             ghostModel.rotateY(-Math.PI / 2); // Rotate the ghost by 90 degrees to the right
+            if (gltf.animations.length > 0) {
+                console.log(gltf.animations)
+                const walkAction = ghostMixer.clipAction(gltf.animations[5]);
+                walkAction.play();
+            }
             break;
 
         default:
