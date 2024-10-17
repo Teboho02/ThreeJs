@@ -37,7 +37,7 @@ groundTexture.wrapS = THREE.RepeatWrapping;
 groundTexture.wrapT = THREE.RepeatWrapping;
 groundTexture.repeat.set(2, 2);
 
-const goalgeometry = new THREE.CylinderGeometry(5, 5, 20, 32);
+const goalgeometry = new THREE.CylinderGeometry(1, 1, 20, 32);
 const goalmaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
 const goal = new THREE.Mesh(goalgeometry, goalmaterial);
 goal.position.set(0, 5, 0);
@@ -118,10 +118,10 @@ function bfs(grid, start, end) {
 
 // Function to load and animate the model
 function generateGhosts(position, yRotation) {
-    loader.load('./imrod/scene.gltf', function (gltf) {
+    loader.load('./scp-096_original/scene.gltf', function (gltf) {
         ghostModel = gltf.scene;
         ghostModel.position.set(position[0], position[1], position[2]);
-        let size = 0.1;
+        let size = 10.1;
         ghostModel.scale.set(size, size, size);
         ghostModel.rotation.set(0, yRotation, 0);
         scene.add(ghostModel);
@@ -231,4 +231,4 @@ createWall(0, -150);
 createWall(-100, -150);
 
 // Generate ghost models and trigger BFS
-generateGhosts([0, 0, -70], Math.PI / 3);
+generateGhosts([0, 0, 0], Math.PI / 3);
