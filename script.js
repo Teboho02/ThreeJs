@@ -132,7 +132,7 @@ function generateGhosts(position, yRotation) {
         // Play walk animation if available
         if (gltf.animations.length > 0) {
             console.log(gltf.animations)
-            const walkAction = ghostMixer.clipAction(gltf.animations[0]);
+            const walkAction = ghostMixer.clipAction(gltf.animations[1]);
             walkAction.play();
         }
 
