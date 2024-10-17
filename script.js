@@ -23,6 +23,12 @@ directionalLight.position.set(100, 100, 1000);
 directionalLight.castShadow = true;
 directionalLight.castShadow = true
 scene.add(directionalLight);
+// Create a sphere to represent the light source
+const lightSphereGeo = new THREE.SphereGeometry(120, 32, 32);
+const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, emissive: 0xffff00 });
+const lightSphere = new THREE.Mesh(lightSphereGeo, lightMaterial);
+lightSphere.position.copy(directionalLight.position); // Place the sphere at the light's position
+scene.add(lightSphere);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
 scene.add(ambientLight);
@@ -80,7 +86,7 @@ const radius = 5;
 const widthSegments = 32;
 const heightSegments = 32;
 const sphereGeo = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
-const earthTexture = textureLoader.load('earth.jpg'); // Check the path
+const earthTexture = textureLoader.load('earth2.avif'); // Check the path
 const earthMaterial = new THREE.MeshStandardMaterial({ map: earthTexture });
 const sphere = new THREE.Mesh(sphereGeo, earthMaterial);
 sphere.position.y = 250;
@@ -104,14 +110,14 @@ function animate() {
 
     if (ghostModel) {
 
-        let path = bfs(array, {
-            x : goal.position.x,
-            z : goal.position.z,
-        },{
-            x : ghostModel.position.x,
-            z : ghostModel.position.z,
-        }
-    )
+    //     let path = bfs(array, {
+    //         x : goal.position.x,
+    //         z : goal.position.z,
+    //     },{
+    //         x : ghostModel.position.x,
+    //         z : ghostModel.position.z,
+    //     }
+    // )
     // console.log(path[currindex].x)
 
     // ghostModel.position.x = path[currindex].x;
@@ -182,10 +188,10 @@ document.addEventListener('keydown', function (event) {
 
 function generateGhosts(position, yRotation) {
 
-    loader.load('./ghost_in_a_white_sheet/scene.gltf', function (gltf) {
+    loader.load('./imrod/scene.gltf', function (gltf) {
         ghostModel = gltf.scene;
         ghostModel.position.set(position[0], position[1], position[2]);
-        let size = 10;
+        let size = 0.1;
         ghostModel.scale.set(size, size, size);
         ghostModel.rotation.set(0, yRotation, 0);
         scene.add(ghostModel);
@@ -232,5 +238,5 @@ generateGhosts([-10, 10, 12]), Math.PI / 3;
 generateGhosts([12, 10, 22], Math.PI / 10);
 
 
-bfs(array, {x : 15, z: 5}, {x:0, z : 0})
+//bfs(array, {x : 15, z: 5}, {x:0, z : 0})
 

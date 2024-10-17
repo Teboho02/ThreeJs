@@ -1,0 +1,11 @@
+Model Information:
+* title:	Imrod
+* source:	https://sketchfab.com/3d-models/imrod-68ccf8e6a5794681a254f4d8f5905648
+* author:	vasian-65 (https://sketchfab.com/vasian-65)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Imrod" (https://sketchfab.com/3d-models/imrod-68ccf8e6a5794681a254f4d8f5905648) by vasian-65 (https://sketchfab.com/vasian-65) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
