@@ -1,21 +1,17 @@
 const scene = new THREE.Scene();
-let camera_location_x = 0;
-let ghostModel, houseModel, ghostModel2;
-let ghostMixer; 
+let ghostModel, ghostMixer;
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 50, 40);
-let runAction;
-
-const rows = 300;
-const cols = 300;
-
-const array = Array.from({ length: rows }, () => Array(cols).fill(0));
-
-const xMovements = [1, 1, 1, -1, -1, 2, 2];
-
+let action = 5;
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+
+// Add OrbitControls for mouse interaction
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; 
+controls.dampingFactor = 0.05; 
+controls.update();
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
 directionalLight.position.set(100, 100, 1000);
@@ -38,12 +34,6 @@ groundTexture.wrapS = THREE.RepeatWrapping;
 groundTexture.wrapT = THREE.RepeatWrapping;
 groundTexture.repeat.set(2, 2);
 
-const goalgeometry = new THREE.CylinderGeometry(1, 1, 20, 32);
-const goalmaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-const goal = new THREE.Mesh(goalgeometry, goalmaterial);
-goal.position.set(0, 5, 0);
-scene.add(goal);
-
 const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture });
 const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 ground.rotation.x = -Math.PI / 2;
@@ -52,72 +42,6 @@ scene.add(ground);
 
 const loader = new THREE.GLTFLoader();
 
-const radius = 5;
-const widthSegments = 32;
-const heightSegments = 32;
-const sphereGeo = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
-const earthTexture = textureLoader.load('earth2.avif');
-const earthMaterial = new THREE.MeshStandardMaterial({ map: earthTexture });
-const sphere = new THREE.Mesh(sphereGeo, earthMaterial);
-sphere.position.y = 250;
-sphere.position.z = 300;
-sphere.scale.set(10, 10, 10);
-scene.add(sphere);
-
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-window.addEventListener('resize', function () {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-let currindex = 0;
-let path = [];
-let movementSpeed = 20;
-let frameCounter = 0;
-
-// BFS Algorithm
-function bfs(grid, start, end) {
-    let path = [];
-    let directions = [
-        { x: 1, z: 0 },
-        { x: -1, z: 0 },
-        { x: 0, z: 1 },
-        { x: 0, z: -1 }
-    ];
-
-    let queue = [start];
-    let visited = new Set();
-    visited.add(`${start.x},${start.z}`);
-
-    while (queue.length > 0) {
-        let current = queue.shift();
-
-        if (current.x === end.x && current.z === end.z) {
-            path.push(current);
-            break;
-        }
-
-        for (let direction of directions) {
-            let next = {
-                x: current.x + direction.x,
-                z: current.z + direction.z
-            };
-
-            let key = `${next.x},${next.z}`;
-            if (!visited.has(key)) {
-                queue.push(next);
-                visited.add(key);
-                path.push(next);
-            }
-        }
-    }
-
-    return path;
-}
-
-// Function to load and animate the model
 function generateGhosts(position, yRotation) {
     loader.load('./scp-096_original/scene.gltf', function (gltf) {
         ghostModel = gltf.scene;
@@ -127,49 +51,49 @@ function generateGhosts(position, yRotation) {
         ghostModel.rotation.set(0, yRotation, 0);
         scene.add(ghostModel);
 
-        // Create AnimationMixer for the ghost model
+        // Set up the animation mixer
         ghostMixer = new THREE.AnimationMixer(ghostModel);
 
+        ghostModel.animations = gltf.animations;
 
-        //action 0 == attack
-        //action 1 == stand
-        //action 4 == hurt
-        //action 5 == run
-        //action 6 == sit
-    
-
+        
         if (gltf.animations.length > 0) {
             console.log(gltf.animations)
-            const walkAction = ghostMixer.clipAction(gltf.animations[5]);
+            const walkAction = ghostMixer.clipAction(gltf.animations[action]);
             walkAction.play();
         }
 
-        path = bfs(array, { x: goal.position.x, z: goal.position.z }, { x: ghostModel.position.x, z: ghostModel.position.z });
     }, undefined, function (error) {
         console.error('An error occurred while loading the ghost model:', error);
     });
+}
+
+// Function to play animations
+function playAnimation(mixer, animations, animationIndex) {
+    if (animations.length > 0 && animationIndex < animations.length) {
+        const action = mixer.clipAction(animations[animationIndex]);
+        action.reset();
+        action.play();
+    } else {
+        console.error(`No animation found at index ${animationIndex}`);
+    }
 }
 
 // Animation loop
 function animate() {
     requestAnimationFrame(animate);
 
-    frameCounter++;
-    if (ghostModel && path.length > 0 && currindex < path.length && frameCounter % movementSpeed === 0) {
-        ghostModel.position.x = path[currindex].x;
-        ghostModel.position.z = path[currindex].z;
-        currindex++;
-    }
-
-    // Update animation mixer for the ghost model
     if (ghostMixer) {
-        ghostMixer.update(0.005); // Adjust the value to control animation speed
+        ghostMixer.update(0.01); // Adjust the value to control animation speed
     }
 
-    controls.update();
+    controls.update(); // Ensure OrbitControls are updated in each frame
+
     renderer.render(scene, camera);
 }
 animate();
+
+    
 
 document.addEventListener('keydown', function (event) {
     if (!ghostModel || !ghostMixer) return; // If the ghost model or mixer is not loaded yet, do nothing
@@ -177,28 +101,29 @@ document.addEventListener('keydown', function (event) {
 
     switch (event.key) {
         case 'ArrowUp': // Move forward and trigger run animation
+        action = 5
             const direction = new THREE.Vector3(); // Create a new vector to represent the direction
             ghostModel.getWorldDirection(direction); // Get the current forward direction of the ghost
-            ghostModel.position.addScaledVector(direction, 0.5); // Move the ghost forward by 1 unit
+            ghostModel.position.addScaledVector(direction, 0.7); 
 
-            // Play the running animation (action 5)
             if (ghostMixer) {
-                runAction = ghostMixer.clipAction(ghostModel.animations[5]); // Assuming action 5 is the run animation
-                runAction.reset(); // Reset the animation so it starts from the beginning
-                runAction.play(); // Play the run animation
+                runAction = ghostMixer.clipAction(ghostModel.animations[0]); 
+                runAction.reset(); 
+                runAction.play(); 
             }
             break;
 
-        case 'ArrowDown': // Rotate 180 degrees (turn around)
-            ghostModel.rotateY(Math.PI); // Rotate the ghost by 180 degrees (π radians)
+        case 'ArrowDown': 
+            ghostModel.rotateY(Math.PI); 
+            action = 0
             break;
 
-        case 'ArrowLeft': // Rotate left (90 degrees)
-            ghostModel.rotateY(Math.PI / 2); // Rotate the ghost by 90 degrees to the left
+        case 'ArrowLeft': 
+            ghostModel.rotateY(Math.PI / 2); 
             break;
 
-        case 'ArrowRight': // Rotate right (90 degrees)
-            ghostModel.rotateY(-Math.PI / 2); // Rotate the ghost by 90 degrees to the right
+        case 'ArrowRight':
+            ghostModel.rotateY(-Math.PI / 2); 
             if (gltf.animations.length > 0) {
                 console.log(gltf.animations)
                 const walkAction = ghostMixer.clipAction(gltf.animations[5]);
@@ -213,28 +138,12 @@ document.addEventListener('keydown', function (event) {
 });
 
 
-function createWall(xpos, zPos) {
-    const wallGeometry = new THREE.PlaneGeometry(100, 100);
-    const wallTexture = textureLoader.load('wall.jpg');
-    wallTexture.wrapS = THREE.RepeatWrapping;
-    wallTexture.wrapT = THREE.RepeatWrapping;
-    wallTexture.repeat.set(1, 1);
+// Generate ghost model and animations
+generateGhosts([0, 5, 0], 0);
 
-    const wallMaterial = new THREE.MeshStandardMaterial({
-        map: wallTexture,
-        side: THREE.DoubleSide
-    });
-    const wallMesh = new THREE.Mesh(wallGeometry, wallMaterial);
-    wallMesh.rotation.y = Math.PI;
-    wallMesh.position.set(xpos, 50, zPos);
-    scene.add(wallMesh);
-}
-createWall(100, 150);
-createWall(0, 150);
-createWall(-100, 150);
-createWall(100, -150);
-createWall(0, -150);
-createWall(-100, -150);
-
-// Generate ghost models and trigger BFS
-generateGhosts([0, 0, 0], 0);
+// Handle window resizing
+window.addEventListener('resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});

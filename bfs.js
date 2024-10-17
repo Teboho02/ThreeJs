@@ -8,7 +8,6 @@ function checkVisited(visited, node) {
     return false;
 }
 
-// Heuristic function (Manhattan distance)
 function heuristic(node, goal) {
     return Math.abs(node.x - goal.x) + Math.abs(node.z - goal.z);
 }
@@ -29,10 +28,8 @@ export function bfs(matrix, goal, start) {
     let goalFound = false;
 
     while (openSet.length > 0) {
-        // Sort openSet based on fScore (priority queue)
         openSet.sort((a, b) => fScore[`${a.x},${a.z}`] - fScore[`${b.x},${b.z}`]);
 
-        // Get the node with the lowest fScore
         curr = openSet.shift();
 
         if (curr.x === goal.x && curr.z === goal.z) {
