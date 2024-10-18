@@ -18,11 +18,13 @@ directionalLight.position.set(100, 100, 1000);
 directionalLight.castShadow = true;
 scene.add(directionalLight);
 
-const lightSphereGeo = new THREE.SphereGeometry(120, 32, 32);
-const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, emissive: 0xffff00 });
-const lightSphere = new THREE.Mesh(lightSphereGeo, lightMaterial);
-lightSphere.position.copy(directionalLight.position);
-scene.add(lightSphere);
+const lightSphereGeo = new THREE.SphereGeometry(5, 5, 32);
+const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, emissive: 0xffff00 });
+const target = new THREE.Mesh(lightSphereGeo, lightMaterial);
+target.position.set(-100, 10, 100);
+scene.add(target);
+
+
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
 scene.add(ambientLight);
@@ -37,10 +39,12 @@ groundTexture.repeat.set(2, 2);
 const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture });
 const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 ground.rotation.x = -Math.PI / 2;
-ground.position.y = -1;
+ground.position.y = 0;
 scene.add(ground);
 
 const loader = new THREE.GLTFLoader();
+
+let hasReachedTarget = false;
 
 function generateGhosts(position, yRotation) {
     loader.load('./scp-096_original/scene.gltf', function (gltf) {
@@ -51,14 +55,11 @@ function generateGhosts(position, yRotation) {
         ghostModel.rotation.set(0, yRotation, 0);
         scene.add(ghostModel);
 
-        // Set up the animation mixer
         ghostMixer = new THREE.AnimationMixer(ghostModel);
-
         ghostModel.animations = gltf.animations;
-
         
         if (gltf.animations.length > 0) {
-            console.log(gltf.animations)
+            console.log(gltf.animations);
             const walkAction = ghostMixer.clipAction(gltf.animations[action]);
             walkAction.play();
         }
@@ -68,82 +69,60 @@ function generateGhosts(position, yRotation) {
     });
 }
 
-// Function to play animations
-function playAnimation(mixer, animations, animationIndex) {
-    if (animations.length > 0 && animationIndex < animations.length) {
-        const action = mixer.clipAction(animations[animationIndex]);
-        action.reset();
-        action.play();
-    } else {
-        console.error(`No animation found at index ${animationIndex}`);
+function moveTowardsTarget() {
+    if (!ghostModel || !ghostMixer) return;
+
+    const ghostPosition = ghostModel.position;
+    const targetPosition = target.position;
+
+    const distance = ghostPosition.distanceTo(targetPosition);
+    const reachThreshold = 5; 
+
+    if (distance > reachThreshold && !hasReachedTarget) {
+        const direction = new THREE.Vector3().subVectors(targetPosition, ghostPosition).normalize();
+
+        const speed = 0.5; 
+        ghostModel.position.add(direction.multiplyScalar(speed));
+
+        ghostModel.lookAt(targetPosition);
+
+        if (ghostModel.animations.length > 0) {
+            const walkAction = ghostMixer.clipAction(ghostModel.animations[5]); 
+            walkAction.play();
+        }
+    } else if (!hasReachedTarget) {
+        hasReachedTarget = true;
+        
+        ghostMixer.stopAllAction();
+        
+        if (ghostModel.animations.length > 0) {
+            const targetAction = ghostMixer.clipAction(ghostModel.animations[0]);
+            targetAction.play();
+        }
+        
+        console.log("Ghost has reached the target!");
     }
 }
 
-// Animation loop
 function animate() {
     requestAnimationFrame(animate);
 
     if (ghostMixer) {
-        ghostMixer.update(0.01); // Adjust the value to control animation speed
+        ghostMixer.update(0.01);
     }
 
-    controls.update(); // Ensure OrbitControls are updated in each frame
+    moveTowardsTarget();
 
+    controls.update();
     renderer.render(scene, camera);
 }
-animate();
 
-    
+generateGhosts([-200, 5, 0], 0);
 
-document.addEventListener('keydown', function (event) {
-    if (!ghostModel || !ghostMixer) return; // If the ghost model or mixer is not loaded yet, do nothing
-
-
-    switch (event.key) {
-        case 'ArrowUp': // Move forward and trigger run animation
-        action = 5
-            const direction = new THREE.Vector3(); // Create a new vector to represent the direction
-            ghostModel.getWorldDirection(direction); // Get the current forward direction of the ghost
-            ghostModel.position.addScaledVector(direction, 0.7); 
-
-            if (ghostMixer) {
-                runAction = ghostMixer.clipAction(ghostModel.animations[0]); 
-                runAction.reset(); 
-                runAction.play(); 
-            }
-            break;
-
-        case 'ArrowDown': 
-            ghostModel.rotateY(Math.PI); 
-            action = 0
-            break;
-
-        case 'ArrowLeft': 
-            ghostModel.rotateY(Math.PI / 2); 
-            break;
-
-        case 'ArrowRight':
-            ghostModel.rotateY(-Math.PI / 2); 
-            if (gltf.animations.length > 0) {
-                console.log(gltf.animations)
-                const walkAction = ghostMixer.clipAction(gltf.animations[5]);
-                walkAction.play();
-            }
-            break;
-
-        default:
-            console.log('Other key pressed');
-            break;
-    }
-});
-
-
-// Generate ghost model and animations
-generateGhosts([0, 5, 0], 0);
-
-// Handle window resizing
 window.addEventListener('resize', function () {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+animate();
